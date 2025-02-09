@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
+	"github.com/rafael-cagliari/doggo-api/internal/api/middleware"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/sirupsen/logrus"
@@ -19,23 +19,9 @@ type Dog struct {
 func main() {
 	router := chi.NewRouter()
 
-	logger := logrus.New()
-	logger.SetFormatter(&logrus.TextFormatter{FullTimestamp: true})
+	router.Use(middleware.LoggerMiddleware)
 
-	router.Use(func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			start := time.Now()
-
-			next.ServeHTTP(w, r)
-
-			duration := time.Since(start)
-
-			logger.Infof("Method: %s | Route: %s | IP: %s | Time: %s",
-				r.Method, r.URL.Path, r.RemoteAddr, duration)
-		})
-	})
-
-	router.Use()
+	router.Use(middleware.AuthMiddleware)
 
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("API is running!"))
